@@ -79,7 +79,7 @@ namespace AspNet.Identity.PostgreSQL
         /// <returns></returns>
         public int Delete(IdentityUser user, Claim claim)
         {
-            string commandText = "DELETE FROM \"AspNetUserClaims\" WHERE \"UserId\" = @userId AND @ClaimValue = @value AND ClaimType = @type";
+            string commandText = "DELETE FROM \"AspNetUserClaims\" WHERE \"UserId\" = @userId AND \"ClaimValue\" = @value AND \"ClaimType\" = @type";
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("userId", user.Id);
             parameters.Add("value", claim.Value);

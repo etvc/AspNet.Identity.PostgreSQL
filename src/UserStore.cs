@@ -19,7 +19,8 @@ namespace AspNet.Identity.PostgreSQL
         IUserEmailStore<TUser>,
         IUserStore<TUser>,
         IUserLockoutStore<TUser,string>,
-        IUserTwoFactorStore<TUser, string>
+        IUserTwoFactorStore<TUser, string>,
+        IUserPhoneNumberStore<TUser,string>
         where TUser : IdentityUser
     {
         private UserTable<TUser> userTable;
@@ -618,6 +619,69 @@ namespace AspNet.Identity.PostgreSQL
             return Task<bool>.Run<bool>(() =>
             {
                 return false;
+            });
+        }
+
+        public Task SetPhoneNumberAsync(TUser user, string phoneNumber)
+        {
+            return Task<bool>.Run(() =>
+            {
+                var usercl = userClaimsTable.FindByUserId(user.Id);
+                if (usercl != null && usercl.HasClaim(a => a.Type == "PhoneNumber"))
+                {
+                    userClaimsTable.Delete(user, usercl.FindFirst("PhoneNumber"));
+                }
+                userClaimsTable.Insert(new Claim("PhoneNumber", phoneNumber), user.Id);
+            });
+        }
+
+        public Task<string> GetPhoneNumberAsync(TUser user)
+        {
+            return Task<string>.Run<string>(() =>
+            {
+                string result = null;
+                var usercl = userClaimsTable.FindByUserId(user.Id);
+                if (usercl != null )
+                {
+                    var phber =usercl.FindFirst("PhoneNumber");
+                    if (phber!=null)
+                    {
+                        result = phber.Value;
+                    }
+                }
+                return result;
+            });
+        }
+
+        public Task<bool> GetPhoneNumberConfirmedAsync(TUser user)
+        {
+
+            return Task<bool>.Run<bool>(() =>
+            {
+                bool result = false;
+                var usercl = userClaimsTable.FindByUserId(user.Id);
+                if (usercl != null)
+                {
+                    var pc = usercl.FindFirst("PhoneNumberConfirmed");
+                    if (pc != null)
+                    {
+                        bool.TryParse(pc.Value,out result);
+                    }
+                }
+                return result;
+            });
+        }
+
+        public Task SetPhoneNumberConfirmedAsync(TUser user, bool confirmed)
+        {
+            return Task<bool>.Run(() =>
+            {
+                var usercl = userClaimsTable.FindByUserId(user.Id);
+                if (usercl != null && usercl.HasClaim(a => a.Type == "PhoneNumberConfirmed"))
+                {
+                    userClaimsTable.Delete(user, usercl.FindFirst("PhoneNumberConfirmed"));
+                }
+                userClaimsTable.Insert(new Claim("PhoneNumberConfirmed", confirmed.ToString()), user.Id);
             });
         }
     }
